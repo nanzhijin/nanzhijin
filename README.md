@@ -60,13 +60,52 @@
 
 **A/B 实验设计：** 从"调参工具"三轮推翻重建为完整实验设计书 — 正交分流 / 三层指标树 (曝光→click→follow) / 最小样本量估算 / 置换检验 + Bootstrap 离线层 + 真实施部署线上层
 
-#### 🦊 NaNaGi · AI Agent 实时推理平台
-*[nanagi.cn](https://nanagi.cn) 已上线 · Fork 即用 · DeepSeek V4 Pro 驱动*
+#### 🦊 NaNaGi · 关系型 AI Agent 平台
+*[nanagi.cn](https://nanagi.cn) 已上线 · Fork 即用 · DeepSeek V4 Pro · [Repo](https://github.com/nanzhijin/NaNaGi)*
 
-- **三层人格架构 —** 情绪参与推理 (六维情绪模型) + 关系锚定价值 (Bowlby 依恋理论 IWM 图结构 v5.1) + 安全依恋降低反驳，自研关系型 Agent 设计 (ETCLOVG 七层审计)
-- **双路径记忆系统 —** 同伴路径 (SIM-RAG 向量检索，情绪驱动) + 工作路径 (IterResearch 迭代搜索，任务驱动)，读写分离 (Letta 式文件写入 / Mem0 式向量检索)
-- **多模型实时推理 —** LLM 对话 + 混元生图 + 唱片机音频，含 Tool Calling 6 工具链、ReAct 推理循环
-- FastAPI + gunicorn 自购服务器部署，多账户记忆隔离，SMTP 邮件预配，跨平台 (Windows/macOS)
+**定位：** 市面 Agent 解决"怎么让 LLM 做事"，NaNaGi 解决"怎么让 LLM 有持续的关系记忆和社交情境感知"。工具型 Agent → 关系型 Agent。
+
+**ETCLOVG 七层架构 (Harness Engineering 关系型特化)**
+
+基于 CMU·Yale·JHU·Amazon 联合发布的 Agent Harness Engineering 综述（不改模型权重，纯 Harness 编码基准 10 倍提升），将七层框架重新定义为关系型 Agent 的底层基础设施：
+
+```
+L6 入口层   — bcrypt+JWT 鉴权, PersonaSwitch(双人格切换), 三身份通道(admin/guest-iv/guest)
+L5 人格引擎  — Context Governor(中央调度器, Token~8K), CPM 情绪引擎(5维评价→双通路),
+               Self-Node(6 trait) + IWM Nodes(Bowlby 依恋), SIP 社交规划(6步决策+5策略池)
+L4 Agent执行 — ReAct 循环(10步), while round<5, 三层容灾(30s超时→重试1次→降级回复)
+L3 工具层    — 8 工具注册表 (get-time/weather/search-web/generate-image/search-memory/
+               save-memory/paper-search/gnn-recommend), 按人格自适应筛选
+L2 存储层    — admin 文件系统(可审计) + guest LevelDB(物理隔离), 每人独立 IWM+memories+cells
+L1 质量保障  — O(Observability): LLMTrace/ToolTrace/EmotionTrace/Cost per session
+               V(Verification): 社交一致性/人格边界/幻觉防御/Supervisor×3(Drift/Critic/Trajectory)
+               G(Governance): 关系边界/H1-H4指令层级/速率限制/审计追踪
+L0 外部依赖  — DeepSeek V4 Pro, 腾讯混元(生图), 和风天气, QQ邮箱SMTP, LanceDB, Sentence-BERT
+```
+
+**记忆系统 — L1/L2/L3 三级 + 双人格双路检索**
+
+| 层级 | 存储 | 检索 | 延迟 | 容量 |
+|------|------|------|------|------|
+| L1 热 | System Prompt 内嵌 (IWM摘要+滚动摘要+Session) | 自动注入 | 0ms | ~4K tokens |
+| L2 温 | .md frontmatter + MEMORY.md 索引 + [[关联]] 图遍历 | SIM-RAG(companion) / IterResearch(worker) + RRF 融合 | ~500ms | ~150条 |
+| L3 冷 | LanceDB 向量索引 (Sentence-BERT embedding) | 余弦 top-k + Ebbinghaus 14天衰减 | <200ms | 无上限 |
+
+🛡 Supervisor 三层监督 (作用 L2 [[关联]] 遍历): Semantic Drift(cosine<0.3→拒绝) → Lightweight Critic(YES/NO) → Trajectory(3步单调降→拒绝)
+
+**心理学模型现代化 (2026-06 修订)**
+
+| 模块 | 原理论 | 升级后 | 改动 |
+|------|--------|--------|------|
+| 情绪引擎 | OCC (1988) 3维 | **CPM** (Scherer 1993-2009) 5维 + appraisalSequence | ~100行 |
+| IWM 表征 | Bowlby (1969) | Bowlby + Wu三阶段模型 (2025) | +1字段 |
+| 图传播 | Heider (1958) | Heider + RAF 认知断路器 (2025) | +40行 guard |
+| 心理理论 | Premack (1978) | Flavell元认知 + Wellman信念-欲望 | +50行 |
+| 人格面具 | Jung 原型 | Self-Determination Theory 动机连续性 + Big Five 锚定 | +60行 |
+
+**实施进度 — v5.3 路线图** | P1-P4 ✅ 已完成 | P5-A 身份系统 (进行中) | P5-B 认知增强 + V3 记忆分级 | P5-C 质量保障 + Supervisor | P5-D 闭环 + 双路检索 | 44 任务 × 4,165 行 × 19 篇论文引用
+
+**Fork 即用 —** `npm install && cp .env.example .env.local` 填入 DeepSeek Key 即可启动。SMTP(QQ邮箱)/管理员密码/访客密码均预配。Docker 一键部署。
 
 #### 🎵 音频内容召回 · 双模态表征 + FAISS
 *面向播客 / 音乐冷启动 item*
