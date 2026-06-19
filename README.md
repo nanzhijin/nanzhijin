@@ -27,13 +27,38 @@
 
 ### 📦 Featured Projects
 
-#### 🔗 社交 u2u 召回引擎 · 双通道互补架构
-*109K nodes / 603K edges · 阿里电商社交图 · CAAI-BDSC 2023*
+#### 🔗 社交 u2u 召回引擎 · 双路线互补 + 三模型路由
+*109K nodes / 603K edges · 阿里电商社交图 · CAAI-BDSC 2023 · [Repo](https://github.com/nanzhijin/GNN)*
 
-> **热连接：** 共有邻居 → LightGBM → MRR@5=0.74, HitRate@5=0.89  
-> **冷探索：** GNN GraphSAGE → MRR@5=0.56，补齐零交互用户盲区
+**LightGBM 路线 — 五版本系统消融 (A→E)**
 
-全链路闭环：行为日志清洗 → 时间切分构图 → 负采样(1:3) → 240万训练pair → 离线评测 → 模型序列化。产出 A/B 上线方案 (正交分流 / 指标树 / 最小样本量估算)
+| 模型 | 特征组 | AUC | MRR@5 | 关键发现 |
+|------|--------|-----|-------|----------|
+| **LGB-A** | BASE (113d) | **0.8957** | 0.5523 | 不含朋友圈，全局 MRR 最优 |
+| LGB-B | +EDGE (119d) | 0.8606 | 0.4291 | 朋友圈特征反降 AUC |
+| LGB-D | +TEMPORAL+CATEGORY | 0.9479 | 0.3650 | ⚠️ rank 特征注水 AUC |
+| **LGB-E** ★ | -rank (119d) | 0.8840 | 0.4482 | 去注水后 HITS@5=0.76 |
+
+**GNN 路线 — GraphSAGE + DySAT 对比**
+
+| 模型 | 架构 | AUC | MRR@5 | 定位 |
+|------|------|-----|-------|------|
+| **GNN-A** | SAGE + ItemEncoder | 0.9853 | 0.3517 | 陌生人专家 |
+| **GNN-B** ★ | +Extra 6d (时序+品类) | **0.9889** | **0.3824** | 全局门卫 |
+| DySAT + Item | +Temporal Attention | 0.9790 | 0.3111 | 时序信号弱，负优化 |
+
+**MRR@5 分场景拆解 — 朋友 74.6% / 陌生人 25.4%**
+
+| 场景 | LGB-A | LGB-E | GNN-A | GNN-B |
+|------|:-----:|:-----:|:-----:|:-----:|
+| 朋友组 (Seen) | **0.74** | 0.52 | 0.28 | 0.34 |
+| 陌生人组 (Unseen) | 0.00 | 0.23 | **0.56** | 0.52 |
+
+> **最优方案：** 朋友用 LGB-A (MRR 0.74) + 陌生人用 GNN-A (MRR 0.56)，理论组合 MRR ≈ 0.69。GNN-B 下沉为全链路粗筛门卫 (AUC 0.989)，过滤低概率候选再送精排。
+
+**全链路闭环：** 行为日志清洗 → 时间切分构图 → 四组特征工程 (BASE/EDGE/TEMPORAL/CATEGORY) → 负采样 1:3 (240万训练 / 48万验证) → 模块化实验框架 (FeatureSelector × ExperimentRunner 交叉组合) → 三模型可加载 artifact → AutoDL RTX 5090 云部署验证
+
+**A/B 实验设计：** 从"调参工具"三轮推翻重建为完整实验设计书 — 正交分流 / 三层指标树 (曝光→click→follow) / 最小样本量估算 / 置换检验 + Bootstrap 离线层 + 真实施部署线上层
 
 #### 🦊 NaNaGi · AI Agent 实时推理平台
 *[nanagi.cn](https://nanagi.cn) 已上线 · Fork 即用 · DeepSeek V4 Pro 驱动*
