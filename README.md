@@ -1,7 +1,6 @@
 ## Hi there 👋 我是 南志锦
 
 [![NVIDIA SkillSpector](https://img.shields.io/badge/NVIDIA-SkillSpector-76B900?style=flat&logo=nvidia)](https://github.com/NVIDIA/SkillSpector/pull/100)
-[![NVIDIA NEMO-RELAY](https://img.shields.io/badge/NVIDIA-NeMo-Relay-76B900?style=flat&logo=nvidia)](https://github.com/NVIDIA/NeMo-Relay/pull/320)
 
 **推荐系统 & AI Agent 工程师 · 主攻召回架构与 Agent 系统设计**
 
